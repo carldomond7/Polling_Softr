@@ -8,7 +8,7 @@ app = FastAPI()
 # Add CORS middleware to allow requests from your Softr page
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://deshawn582.preview.softr.app"],  # Allow your Softr domain
+    allow_origins=["*"],  # Allow all origins temporarily for debugging
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
@@ -16,12 +16,10 @@ app.add_middleware(
 
 @app.post("/poll-webhook/")
 async def poll_webhook(request: Request):
-    # Extract the webhook URL from the incoming JSON body
     data = await request.json()
     print(f"Received webhook_url: {data}")
     webhook_url = data.get("webhook_url")
 
-    # If no webhook URL is provided, return an error
     if not webhook_url:
         raise HTTPException(status_code=400, detail="No webhook URL provided.")
 
@@ -35,7 +33,11 @@ async def poll_webhook(request: Request):
                 response = await client.get(webhook_url)  # Poll the provided URL
 
             if response.status_code == 200:
-                return response.json()  # Return the JSON body once 200 OK is received
+                # Check if response is JSON before decoding
+                if "application/json" in response.headers.get("Content-Type", ""):
+                    return response.json()  # Return the JSON body once 200 OK is received
+                else:
+                    return {"message": "Non-JSON response", "content": response.text}  # Return non-JSON response as text
             else:
                 print(f"Attempt {attempts + 1}: Received {response.status_code}, retrying...")
                 attempts += 1
