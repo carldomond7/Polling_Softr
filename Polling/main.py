@@ -32,12 +32,24 @@ async def poll_webhook(request: Request):
             async with httpx.AsyncClient() as client:
                 response = await client.get(webhook_url)  # Poll the provided URL
 
+            # Log the response for each polling attempt
+            print(f"Attempt {attempts + 1}: Received {response.status_code}")
+            print(f"Response content: {response.text}")
+
+            # If the final payload is ready and we get 200 OK, return the response
             if response.status_code == 200:
                 # Check if response is JSON before decoding
                 if "application/json" in response.headers.get("Content-Type", ""):
                     return response.json()  # Return the JSON body once 200 OK is received
                 else:
                     return {"message": "Non-JSON response", "content": response.text}  # Return non-JSON response as text
+
+            # If the response is 202 Accepted, continue polling
+            elif response.status_code == 202:
+                print(f"Attempt {attempts + 1}: Received 202 Accepted, still processing...")
+                attempts += 1
+                time.sleep(delay)  # Wait before the next attempt
+
             else:
                 print(f"Attempt {attempts + 1}: Received {response.status_code}, retrying...")
                 attempts += 1
