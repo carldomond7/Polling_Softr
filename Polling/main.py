@@ -1,8 +1,18 @@
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 import httpx
 import time
 
 app = FastAPI()
+
+# Add CORS middleware to allow requests from your Softr page
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://deshawn582.preview.softr.app"],  # Allow your Softr domain
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allow all headers
+)
 
 @app.post("/poll-webhook/")
 async def poll_webhook(request: Request):
