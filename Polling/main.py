@@ -18,6 +18,7 @@ app.add_middleware(
 async def poll_webhook(request: Request):
     # Extract the webhook URL from the incoming JSON body
     data = await request.json()
+    print(f"Received webhook_url: {data}")
     webhook_url = data.get("webhook_url")
 
     # If no webhook URL is provided, return an error
